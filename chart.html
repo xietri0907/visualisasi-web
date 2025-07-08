@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scatter Plot Interaktif</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #controls { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+    label { font-weight: bold; }
+    select, input[type=range], button { padding: 5px; }
+    #plot { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <h2><b>Scatter Plot Interaktif</b> - Pilih Kolom Data</h2>
+
+  <div id="controls">
+    <label for="xSelect">X-Axis:</label>
+    <select id="xSelect"></select>
+
+    <label for="ySelect">Y-Axis:</label>
+    <select id="ySelect"></select>
+
+    <label for="yearSlider">Tahun:</label>
+    <input type="range" id="yearSlider" min="2020" max="2025" step="1">
+    <span id="selectedYear">2020</span>
+
+    <button onclick="updatePlot()">Tampilkan Grafik</button>
+    <button onclick="downloadPlot()">Download PNG</button>
+  </div>
+
+  <div id="plot"></div>
+
+  <script>
+    let allData = [];
+    let uniqueYears = [];
+    let numericFields = [];
+
+    Papa.parse("out_semua.csv", {
+      download: true,
+      header: true,
+      delimiter: ";",
+      complete: function(results) {
+        allData = results.data.map(d => {
+          const obj = {};
+          for (const key in d) {
+            const val = d[key];
+            const num = parseFloat(val);
+            obj[key.trim()] = isNaN(num) ? val.trim() : num;
+          }
+          return obj;
+        }).filter(d => !isNaN(parseInt(d['TAHUN'])));
+
+        uniqueYears = [...new Set(allData.map(d => parseInt(d['TAHUN'])))].sort((a,b) => a-b);
+        const yearSlider = document.getElementById('yearSlider');
+        yearSlider.min = uniqueYears[0];
+        yearSlider.max = uniqueYears[uniqueYears.length - 1];
+        yearSlider.value = uniqueYears[0];
+        document.getElementById('selectedYear').textContent = yearSlider.value;
+        yearSlider.addEventListener('input', function() {
+          document.getElementById('selectedYear').textContent = this.value;
+        });
+
+        const sample = allData[0];
+        numericFields = Object.keys(sample).filter(k =>
+          typeof sample[k] === 'number' && !['TAHUN'].includes(k)
+        );
+
+        const xSel = document.getElementById('xSelect');
+        const ySel = document.getElementById('ySelect');
+        numericFields.forEach(f => {
+          xSel.innerHTML += `<option value="${f}">${f}</option>`;
+          ySel.innerHTML += `<option value="${f}">${f}</option>`;
+        });
+
+        updatePlot();
+      }
+    });
+
+    function updatePlot() {
+      const xField = document.getElementById('xSelect').value;
+      const yField = document.getElementById('ySelect').value;
+      const tahun = parseInt(document.getElementById('yearSlider').value);
+      const dataThisYear = allData.filter(d => parseInt(d['TAHUN']) === tahun);
+      const clusterSet = [...new Set(dataThisYear.map(d => d['cluster']))];
+
+      const traces = clusterSet.map(cluster => {
+        const clusterData = dataThisYear.filter(d => d['cluster'] === cluster);
+        return {
+          x: clusterData.map(d => d[xField]),
+          y: clusterData.map(d => d[yField]),
+          text: clusterData.map(d => d[xField] >= 0.9 ? d['WILAYAH'] : ""),
+          name: cluster,
+          mode: 'markers+text',
+          type: 'scatter',
+          textposition: 'top center',
+          marker: { size: 12 }
+        };
+      });
+
+      Plotly.newPlot('plot', traces, {
+        title: `${xField} vs ${yField} (${tahun})`,
+        xaxis: { title: xField },
+        yaxis: { title: yField },
+        margin: { t: 50, l: 60, r: 40, b: 60 }
+      });
+    }
+
+    function downloadPlot() {
+      Plotly.downloadImage('plot', {format: 'png', filename: 'scatter_plot'});
+    }
+  </script>
+</body>
+</html>
