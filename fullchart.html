@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bar Chart Persentase – Data Langsung di Embed</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; margin-bottom: 10px; gap: 10px; }
+    #plot { width: 100%; height: 500px; }
+    table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 12px; }
+    th { background-color: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h2><strong>Bar Chart Persentase</strong> – Data Langsung di Embed</h2>
+
+  <div class="row">
+    <label><strong>Pembilang (A):</strong></label>
+    <select id="pembilang"></select>
+
+    <label><strong>Penyebut (B):</strong></label>
+    <select id="penyebut"></select>
+
+    <label><strong>Warna:</strong></label>
+    <select id="color">
+      <option value="red">Merah</option>
+      <option value="green">Hijau</option>
+      <option value="blue" selected>Biru</option>
+    </select>
+
+    <label><strong>Chart:</strong></label>
+    <select id="chartType">
+      <option value="bar">Bar</option>
+      <option value="line">Line</option>
+      <option value="scatter">Scatter</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <label><strong>Tahun:</strong></label>
+    <input type="range" id="yearSlider" min="2020" max="2023" step="1" value="2020" />
+    <span id="yearValue">2020</span>
+
+    <button onclick="updateChart()">Tampilkan Grafik</button>
+    <button onclick="downloadPlot()">Download PNG</button>
+  </div>
+
+  <div id="plot"></div>
+  <div id="table">Memuat data...</div>
+
+  <script src="chart_data_embed.js"></script>
+  <script>
+    const allFields = Object.keys(data["2020"]).filter(k => k !== "Wilayah");
+    const pembilangSelect = document.getElementById("pembilang");
+    const penyebutSelect = document.getElementById("penyebut");
+    allFields.forEach(f => {
+      pembilangSelect.innerHTML += `<option value="${f}">${f}</option>`;
+      penyebutSelect.innerHTML += `<option value="${f}">${f}</option>`;
+    });
+
+    document.getElementById("yearSlider").addEventListener("input", e => {
+      document.getElementById("yearValue").innerText = e.target.value;
+    });
+
+    function updateChart() {
+      const year = document.getElementById("yearSlider").value;
+      const pembilang = pembilangSelect.value;
+      const penyebut = penyebutSelect.value;
+      const warna = document.getElementById("color").value;
+      const chartType = document.getElementById("chartType").value;
+      const wilayah = data[year]["Wilayah"];
+      const a = data[year][pembilang];
+      const b = data[year][penyebut];
+
+      if (pembilang === penyebut) {
+        document.getElementById("plot").innerHTML = "<b>Pembilang dan penyebut tidak boleh sama.</b>";
+        document.getElementById("table").innerHTML = "";
+        return;
+      }
+
+      const persentase = a.map((val, i) => b[i] === 0 ? 0 : (val / b[i]) * 100);
+      const trace = {
+        x: wilayah,
+        y: persentase,
+        type: chartType,
+        marker: { color: warna },
+        name: `${pembilang}/${penyebut}`
+      };
+
+      Plotly.newPlot("plot", [trace], {
+        title: `${pembilang} / ${penyebut} × 100 – Tahun ${year}`,
+        xaxis: { title: "Wilayah", tickangle: -45 },
+        yaxis: { title: "Persentase (%)", rangemode: "tozero" },
+        margin: { b: 120 }
+      });
+
+      // Tampilkan tabel
+      let html = `<table><thead><tr><th>Wilayah</th><th>${pembilang}</th><th>${penyebut}</th><th>Persentase (%)</th></tr></thead><tbody>`;
+      wilayah.forEach((w, i) => {
+        html += `<tr><td>${w}</td><td>${a[i]}</td><td>${b[i]}</td><td>${persentase[i].toFixed(2)}</td></tr>`;
+      });
+      html += "</tbody></table>";
+      document.getElementById("table").innerHTML = html;
+    }
+
+    function downloadPlot() {
+      Plotly.downloadImage("plot", { format: "png", height: 500, width: 960 });
+    }
+
+    updateChart();
+  </script>
+</body>
+</html>
