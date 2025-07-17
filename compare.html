@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Trend 2020–2023: Perbandingan Dua Wilayah</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    label {
+      font-weight: bold;
+      margin-right: 5px;
+    }
+    select, button {
+      margin-right: 10px;
+      margin-bottom: 8px;
+    }
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    #controls > div {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #plot {
+      max-width: 850px;
+      height: 450px;
+    }
+  </style>
+</head>
+<body>
+  <h2>📉 Trend 2020–2023: Perbandingan Dua Wilayah</h2>
+
+  <div id="controls">
+    <div><label>Pembilang:</label>
+      <select id="numerator">
+        <option>Sebaran</option>
+        <option>Sembuh</option>
+        <option>Kematian</option>
+        <option>Jumlah Rumah Sakit</option>
+        <option>Jumlah tenaga keperawatan</option>
+      </select>
+    </div>
+
+    <div><label>Penyebut:</label>
+      <select id="denominator">
+        <option>Sembuh</option>
+        <option>Sebaran</option>
+        <option>Kematian</option>
+        <option>Jumlah Rumah Sakit</option>
+        <option>Jumlah tenaga keperawatan</option>
+      </select>
+    </div>
+
+    <div><label>Type Grafik:</label>
+      <select id="chartType">
+        <option>Line</option>
+        <option>Bar</option>
+      </select>
+    </div>
+
+    <div><label>Wilayah A:</label>
+      <select id="regionA"></select>
+    </div>
+
+    <div><label>Warna:</label>
+      <select id="colorA">
+        <option value="red">Merah</option>
+        <option value="blue">Biru</option>
+        <option value="green">Hijau</option>
+        <option value="orange">Oranye</option>
+      </select>
+    </div>
+
+    <div><label>Wilayah B:</label>
+      <select id="regionB"></select>
+    </div>
+
+    <div><label>Warna:</label>
+      <select id="colorB">
+        <option value="blue">Biru</option>
+        <option value="red">Merah</option>
+        <option value="green">Hijau</option>
+        <option value="orange">Oranye</option>
+      </select>
+    </div>
+
+    <div>
+      <button onclick="updateChart()">Tampilkan Grafik</button>
+    </div>
+  </div>
+
+  <div id="plot"></div>
+
+  <script>
+    const rawData = [{'Wilayah': 'KABUPATEN BANDUNG', 'Tahun': 2020, 'Sebaran': 2592, 'Sembuh': 1858, 'Kematian': 148, 'Jumlah_Tenaga_Keperawatan': 1893, 'Jumlah_Rumah_Sakit': 10, 'Jumlah_Nakes': 90, 'Jumlah_Penduduk': 3583056, 'Jumlah_Penduduk_Bekerja': 1569974, 'Jumlah_Perilaku_Hidup_Sehat': 195419}, {'Wilayah': 'KABUPATEN BANDUNG BARAT', 'Tahun': 2020, 'Sebaran': 1175, 'Sembuh': 837, 'Kematian': 51, 'Jumlah_Tenaga_Keperawatan': 1047, 'Jumlah_Rumah_Sakit': 9, 'Jumlah_Nakes': 45, 'Jumlah_Penduduk': 1712348, 'Jumlah_Penduduk_Bekerja': 656087, 'Jumlah_Perilaku_Hidup_Sehat': 219561}, {'Wilayah': 'KABUPATEN BEKASI', 'Tahun': 2020, 'Sebaran': 1866, 'Sembuh': 1225, 'Kematian': 42, 'Jumlah_Tenaga_Keperawatan': 3811, 'Jumlah_Rumah_Sakit': 50, 'Jumlah_Nakes': 62, 'Jumlah_Penduduk': 2880280, 'Jumlah_Penduduk_Bekerja': 1628231, 'Jumlah_Perilaku_Hidup_Sehat': 621474}, {'Wilayah': 'KABUPATEN BOGOR', 'Tahun': 2020, 'Sebaran': 6267, 'Sembuh': 2921, 'Kematian': 173, 'Jumlah_Tenaga_Keperawatan': 3615, 'Jumlah_Rumah_Sakit': 29, 'Jumlah_Nakes': 78, 'Jumlah_Penduduk': 5132355, 'Jumlah_Penduduk_Bekerja': 2342939, 'Jumlah_Perilaku_Hidup_Sehat': 570448}, {'Wilayah': 'KABUPATEN CIAMIS', 'Tahun': 2020, 'Sebaran': 1029, 'Sembuh': 580, 'Kematian': 29, 'Jumlah_Tenaga_Keperawatan': 1113, 'Jumlah_Rumah_Sakit': 5, 'Jumlah_Nakes': 40, 'Jumlah_Penduduk': 1259984, 'Jumlah_Penduduk_Bekerja': 640767, 'Jumlah_Perilaku_Hidup_Sehat': 86020}, {'Wilayah': 'KABUPATEN CIANJUR', 'Tahun': 2020, 'Sebaran': 1783, 'Sembuh': 915, 'Kematian': 20, 'Jumlah_Tenaga_Keperawatan': 952, 'Jumlah_Rumah_Sakit': 5, 'Jumlah_Nakes': 57, 'Jumlah_Penduduk': 2368613, 'Jumlah_Penduduk_Bekerja': 1054579, 'Jumlah_Perilaku_Hidup_Sehat': 402092}, {'Wilayah': 'KABUPATEN CIREBON', 'Tahun': 2020, 'Sebaran': 2755, 'Sembuh': 2298, 'Kematian': 109, 'Jumlah_Tenaga_Keperawatan': 2808, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 79, 'Jumlah_Penduduk': 2296999, 'Jumlah_Penduduk_Bekerja': 938217, 'Jumlah_Perilaku_Hidup_Sehat': 23969}, {'Wilayah': 'KABUPATEN GARUT', 'Tahun': 2020, 'Sebaran': 2265, 'Sembuh': 1945, 'Kematian': 62, 'Jumlah_Tenaga_Keperawatan': 4177, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 54, 'Jumlah_Penduduk': 2514515, 'Jumlah_Penduduk_Bekerja': 1052573, 'Jumlah_Perilaku_Hidup_Sehat': 335412}, {'Wilayah': 'KABUPATEN INDRAMAYU', 'Tahun': 2020, 'Sebaran': 1132, 'Sembuh': 563, 'Kematian': 77, 'Jumlah_Tenaga_Keperawatan': 1570, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 80, 'Jumlah_Penduduk': 1871149, 'Jumlah_Penduduk_Bekerja': 854045, 'Jumlah_Perilaku_Hidup_Sehat': 64961}, {'Wilayah': 'KABUPATEN KARAWANG', 'Tahun': 2020, 'Sebaran': 2845, 'Sembuh': 1849, 'Kematian': 76, 'Jumlah_Tenaga_Keperawatan': 2965, 'Jumlah_Rumah_Sakit': 24, 'Jumlah_Nakes': 48, 'Jumlah_Penduduk': 2361019, 'Jumlah_Penduduk_Bekerja': 1028735, 'Jumlah_Perilaku_Hidup_Sehat': 331477}, {'Wilayah': 'KABUPATEN KUNINGAN', 'Tahun': 2020, 'Sebaran': 1112, 'Sembuh': 844, 'Kematian': 79, 'Jumlah_Tenaga_Keperawatan': 1242, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 48, 'Jumlah_Penduduk': 1183740, 'Jumlah_Penduduk_Bekerja': 463164, 'Jumlah_Perilaku_Hidup_Sehat': 181974}, {'Wilayah': 'KABUPATEN MAJALENGKA', 'Tahun': 2020, 'Sebaran': 1114, 'Sembuh': 1105, 'Kematian': 24, 'Jumlah_Tenaga_Keperawatan': 881, 'Jumlah_Rumah_Sakit': 5, 'Jumlah_Nakes': 34, 'Jumlah_Penduduk': 1315272, 'Jumlah_Penduduk_Bekerja': 625576, 'Jumlah_Perilaku_Hidup_Sehat': 295839}, {'Wilayah': 'KABUPATEN PANGANDARAN', 'Tahun': 2020, 'Sebaran': 276, 'Sembuh': 200, 'Kematian': 4, 'Jumlah_Tenaga_Keperawatan': 446, 'Jumlah_Rumah_Sakit': 1, 'Jumlah_Nakes': 30, 'Jumlah_Penduduk': 428242, 'Jumlah_Penduduk_Bekerja': 233143, 'Jumlah_Perilaku_Hidup_Sehat': 93818}, {'Wilayah': 'KABUPATEN PURWAKARTA', 'Tahun': 2020, 'Sebaran': 873, 'Sembuh': 571, 'Kematian': 25, 'Jumlah_Tenaga_Keperawatan': 1494, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 29, 'Jumlah_Penduduk': 974304, 'Jumlah_Penduduk_Bekerja': 384543, 'Jumlah_Perilaku_Hidup_Sehat': 164419}, {'Wilayah': 'KABUPATEN SUBANG', 'Tahun': 2020, 'Sebaran': 1109, 'Sembuh': 725, 'Kematian': 90, 'Jumlah_Tenaga_Keperawatan': 922, 'Jumlah_Rumah_Sakit': 8, 'Jumlah_Nakes': 49, 'Jumlah_Penduduk': 1583935, 'Jumlah_Penduduk_Bekerja': 746284, 'Jumlah_Perilaku_Hidup_Sehat': 284425}, {'Wilayah': 'KABUPATEN SUKABUMI', 'Tahun': 2020, 'Sebaran': 2288, 'Sembuh': 1693, 'Kematian': 5, 'Jumlah_Tenaga_Keperawatan': 1889, 'Jumlah_Rumah_Sakit': 8, 'Jumlah_Nakes': 78, 'Jumlah_Penduduk': 2626762, 'Jumlah_Penduduk_Bekerja': 1036735, 'Jumlah_Perilaku_Hidup_Sehat': 362219}, {'Wilayah': 'KABUPATEN SUMEDANG', 'Tahun': 2020, 'Sebaran': 807, 'Sembuh': 552, 'Kematian': 73, 'Jumlah_Tenaga_Keperawatan': 1030, 'Jumlah_Rumah_Sakit': 3, 'Jumlah_Nakes': 39, 'Jumlah_Penduduk': 1159454, 'Jumlah_Penduduk_Bekerja': 574606, 'Jumlah_Perilaku_Hidup_Sehat': 169478}, {'Wilayah': 'KABUPATEN TASIKMALAYA', 'Tahun': 2020, 'Sebaran': 1766, 'Sembuh': 1273, 'Kematian': 98, 'Jumlah_Tenaga_Keperawatan': 1075, 'Jumlah_Rumah_Sakit': 2, 'Jumlah_Nakes': 37, 'Jumlah_Penduduk': 1803800, 'Jumlah_Penduduk_Bekerja': 877416, 'Jumlah_Perilaku_Hidup_Sehat': 145089}, {'Wilayah': 'KOTA BANDUNG', 'Tahun': 2020, 'Sebaran': 3189, 'Sembuh': 1864, 'Kematian': 206, 'Jumlah_Tenaga_Keperawatan': 6104, 'Jumlah_Rumah_Sakit': 36, 'Jumlah_Nakes': 97, 'Jumlah_Penduduk': 2500967, 'Jumlah_Penduduk_Bekerja': 1167849, 'Jumlah_Perilaku_Hidup_Sehat': 83111}, {'Wilayah': 'KOTA BANJAR', 'Tahun': 2020, 'Sebaran': 395, 'Sembuh': 386, 'Kematian': 6, 'Jumlah_Tenaga_Keperawatan': 406, 'Jumlah_Rumah_Sakit': 3, 'Jumlah_Nakes': 20, 'Jumlah_Penduduk': 205482, 'Jumlah_Penduduk_Bekerja': 91602, 'Jumlah_Perilaku_Hidup_Sehat': 46676}, {'Wilayah': 'KOTA BEKASI', 'Tahun': 2020, 'Sebaran': 3188, 'Sembuh': 1984, 'Kematian': 71, 'Jumlah_Tenaga_Keperawatan': 5433, 'Jumlah_Rumah_Sakit': 46, 'Jumlah_Nakes': 55, 'Jumlah_Penduduk': 2464719, 'Jumlah_Penduduk_Bekerja': 1348530, 'Jumlah_Perilaku_Hidup_Sehat': 34823}, {'Wilayah': 'KOTA BOGOR', 'Tahun': 2020, 'Sebaran': 1132, 'Sembuh': 908, 'Kematian': 35, 'Jumlah_Tenaga_Keperawatan': 2654, 'Jumlah_Rumah_Sakit': 21, 'Jumlah_Nakes': 50, 'Jumlah_Penduduk': 1064698, 'Jumlah_Penduduk_Bekerja': 449120, 'Jumlah_Perilaku_Hidup_Sehat': 135463}, {'Wilayah': 'KOTA CIMAHI', 'Tahun': 2020, 'Sebaran': 587, 'Sembuh': 473, 'Kematian': 7, 'Jumlah_Tenaga_Keperawatan': 1441, 'Jumlah_Rumah_Sakit': 7, 'Jumlah_Nakes': 21, 'Jumlah_Penduduk': 557911, 'Jumlah_Penduduk_Bekerja': 254699, 'Jumlah_Perilaku_Hidup_Sehat': 60240}, {'Wilayah': 'KOTA CIREBON', 'Tahun': 2020, 'Sebaran': 730, 'Sembuh': 603, 'Kematian': 18, 'Jumlah_Tenaga_Keperawatan': 1320, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 33, 'Jumlah_Penduduk': 343003, 'Jumlah_Penduduk_Bekerja': 139334, 'Jumlah_Perilaku_Hidup_Sehat': 44311}, {'Wilayah': 'KOTA DEPOK', 'Tahun': 2020, 'Sebaran': 2070, 'Sembuh': 1570, 'Kematian': 88, 'Jumlah_Tenaga_Keperawatan': 2817, 'Jumlah_Rumah_Sakit': 24, 'Jumlah_Nakes': 41, 'Jumlah_Penduduk': 1872996, 'Jumlah_Penduduk_Bekerja': 1077600, 'Jumlah_Perilaku_Hidup_Sehat': 321458}, {'Wilayah': 'KOTA SUKABUMI', 'Tahun': 2020, 'Sebaran': 537, 'Sembuh': 493, 'Kematian': 13, 'Jumlah_Tenaga_Keperawatan': 1125, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 31, 'Jumlah_Penduduk': 351459, 'Jumlah_Penduduk_Bekerja': 122662, 'Jumlah_Perilaku_Hidup_Sehat': 54842}, {'Wilayah': 'KOTA TASIKMALAYA', 'Tahun': 2020, 'Sebaran': 891, 'Sembuh': 571, 'Kematian': 40, 'Jumlah_Tenaga_Keperawatan': 1417, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 31, 'Jumlah_Penduduk': 725561, 'Jumlah_Penduduk_Bekerja': 315844, 'Jumlah_Perilaku_Hidup_Sehat': 70975}, {'Wilayah': 'KABUPATEN BANDUNG', 'Tahun': 2021, 'Sebaran': 1698, 'Sembuh': 857, 'Kematian': 188, 'Jumlah_Tenaga_Keperawatan': 1952, 'Jumlah_Rumah_Sakit': 10, 'Jumlah_Nakes': 91, 'Jumlah_Penduduk': 3633437, 'Jumlah_Penduduk_Bekerja': 1673019, 'Jumlah_Perilaku_Hidup_Sehat': 367264}, {'Wilayah': 'KABUPATEN BANDUNG BARAT', 'Tahun': 2021, 'Sebaran': 721, 'Sembuh': 364, 'Kematian': 42, 'Jumlah_Tenaga_Keperawatan': 1047, 'Jumlah_Rumah_Sakit': 9, 'Jumlah_Nakes': 35, 'Jumlah_Penduduk': 1780767, 'Jumlah_Penduduk_Bekerja': 676733, 'Jumlah_Perilaku_Hidup_Sehat': 363351}, {'Wilayah': 'KABUPATEN BEKASI', 'Tahun': 2021, 'Sebaran': 1489, 'Sembuh': 412, 'Kematian': 47, 'Jumlah_Tenaga_Keperawatan': 3957, 'Jumlah_Rumah_Sakit': 50, 'Jumlah_Nakes': 71, 'Jumlah_Penduduk': 3022787, 'Jumlah_Penduduk_Bekerja': 1756261, 'Jumlah_Perilaku_Hidup_Sehat': 554077}, {'Wilayah': 'KABUPATEN BOGOR', 'Tahun': 2021, 'Sebaran': 4296, 'Sembuh': 1558, 'Kematian': 218, 'Jumlah_Tenaga_Keperawatan': 3995, 'Jumlah_Rumah_Sakit': 29, 'Jumlah_Nakes': 124, 'Jumlah_Penduduk': 5327131, 'Jumlah_Penduduk_Bekerja': 2445768, 'Jumlah_Perilaku_Hidup_Sehat': 573352}, {'Wilayah': 'KABUPATEN CIAMIS', 'Tahun': 2021, 'Sebaran': 748, 'Sembuh': 245, 'Kematian': 43, 'Jumlah_Tenaga_Keperawatan': 1665, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 58, 'Jumlah_Penduduk': 1263198, 'Jumlah_Penduduk_Bekerja': 637102, 'Jumlah_Perilaku_Hidup_Sehat': 96743}, {'Wilayah': 'KABUPATEN CIANJUR', 'Tahun': 2021, 'Sebaran': 1561, 'Sembuh': 248, 'Kematian': 84, 'Jumlah_Tenaga_Keperawatan': 952, 'Jumlah_Rumah_Sakit': 5, 'Jumlah_Nakes': 57, 'Jumlah_Penduduk': 2437838, 'Jumlah_Penduduk_Bekerja': 1066323, 'Jumlah_Perilaku_Hidup_Sehat': 442503}, {'Wilayah': 'KABUPATEN CIREBON', 'Tahun': 2021, 'Sebaran': 1585, 'Sembuh': 537, 'Kematian': 108, 'Jumlah_Tenaga_Keperawatan': 2969, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 77, 'Jumlah_Penduduk': 2365048, 'Jumlah_Penduduk_Bekerja': 970262, 'Jumlah_Perilaku_Hidup_Sehat': 189083}, {'Wilayah': 'KABUPATEN GARUT', 'Tahun': 2021, 'Sebaran': 1611, 'Sembuh': 459, 'Kematian': 93, 'Jumlah_Tenaga_Keperawatan': 2870, 'Jumlah_Rumah_Sakit': 7, 'Jumlah_Nakes': 79, 'Jumlah_Penduduk': 2628725, 'Jumlah_Penduduk_Bekerja': 1096134, 'Jumlah_Perilaku_Hidup_Sehat': 282908}, {'Wilayah': 'KABUPATEN INDRAMAYU', 'Tahun': 2021, 'Sebaran': 641, 'Sembuh': 148, 'Kematian': 34, 'Jumlah_Tenaga_Keperawatan': 1560, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 86, 'Jumlah_Penduduk': 1885172, 'Jumlah_Penduduk_Bekerja': 875280, 'Jumlah_Perilaku_Hidup_Sehat': 45951}, {'Wilayah': 'KABUPATEN KARAWANG', 'Tahun': 2021, 'Sebaran': 1862, 'Sembuh': 798, 'Kematian': 129, 'Jumlah_Tenaga_Keperawatan': 3093, 'Jumlah_Rumah_Sakit': 25, 'Jumlah_Nakes': 44, 'Jumlah_Penduduk': 2406895, 'Jumlah_Penduduk_Bekerja': 1023790, 'Jumlah_Perilaku_Hidup_Sehat': 326480}, {'Wilayah': 'KABUPATEN KUNINGAN', 'Tahun': 2021, 'Sebaran': 789, 'Sembuh': 364, 'Kematian': 64, 'Jumlah_Tenaga_Keperawatan': 1242, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 48, 'Jumlah_Penduduk': 1198814, 'Jumlah_Penduduk_Bekerja': 479405, 'Jumlah_Perilaku_Hidup_Sehat': 187029}, {'Wilayah': 'KABUPATEN MAJALENGKA', 'Tahun': 2021, 'Sebaran': 878, 'Sembuh': 577, 'Kematian': 33, 'Jumlah_Tenaga_Keperawatan': 1070, 'Jumlah_Rumah_Sakit': 5, 'Jumlah_Nakes': 36, 'Jumlah_Penduduk': 1323854, 'Jumlah_Penduduk_Bekerja': 614417, 'Jumlah_Perilaku_Hidup_Sehat': 211474}, {'Wilayah': 'KABUPATEN PANGANDARAN', 'Tahun': 2021, 'Sebaran': 209, 'Sembuh': 58, 'Kematian': 17, 'Jumlah_Tenaga_Keperawatan': 644, 'Jumlah_Rumah_Sakit': 1, 'Jumlah_Nakes': 38, 'Jumlah_Penduduk': 432599, 'Jumlah_Penduduk_Bekerja': 233703, 'Jumlah_Perilaku_Hidup_Sehat': 94504}, {'Wilayah': 'KABUPATEN PURWAKARTA', 'Tahun': 2021, 'Sebaran': 538, 'Sembuh': 185, 'Kematian': 33, 'Jumlah_Tenaga_Keperawatan': 1494, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 29, 'Jumlah_Penduduk': 1001338, 'Jumlah_Penduduk_Bekerja': 391444, 'Jumlah_Perilaku_Hidup_Sehat': 178321}, {'Wilayah': 'KABUPATEN SUBANG', 'Tahun': 2021, 'Sebaran': 875, 'Sembuh': 194, 'Kematian': 76, 'Jumlah_Tenaga_Keperawatan': 1856, 'Jumlah_Rumah_Sakit': 9, 'Jumlah_Nakes': 61, 'Jumlah_Penduduk': 1596179, 'Jumlah_Penduduk_Bekerja': 763589, 'Jumlah_Perilaku_Hidup_Sehat': 266437}, {'Wilayah': 'KABUPATEN SUKABUMI', 'Tahun': 2021, 'Sebaran': 1791, 'Sembuh': 1049, 'Kematian': 17, 'Jumlah_Tenaga_Keperawatan': 2156, 'Jumlah_Rumah_Sakit': 9, 'Jumlah_Nakes': 70, 'Jumlah_Penduduk': 2708966, 'Jumlah_Penduduk_Bekerja': 1105875, 'Jumlah_Perilaku_Hidup_Sehat': 362219}, {'Wilayah': 'KABUPATEN SUMEDANG', 'Tahun': 2021, 'Sebaran': 527, 'Sembuh': 104, 'Kematian': 56, 'Jumlah_Tenaga_Keperawatan': 1217, 'Jumlah_Rumah_Sakit': 3, 'Jumlah_Nakes': 45, 'Jumlah_Penduduk': 1165047, 'Jumlah_Penduduk_Bekerja': 581097, 'Jumlah_Perilaku_Hidup_Sehat': 193165}, {'Wilayah': 'KABUPATEN TASIKMALAYA', 'Tahun': 2021, 'Sebaran': 1295, 'Sembuh': 567, 'Kematian': 85, 'Jumlah_Tenaga_Keperawatan': 987, 'Jumlah_Rumah_Sakit': 2, 'Jumlah_Nakes': 40, 'Jumlah_Penduduk': 1865898, 'Jumlah_Penduduk_Bekerja': 878438, 'Jumlah_Perilaku_Hidup_Sehat': 206987}, {'Wilayah': 'KOTA BANDUNG', 'Tahun': 2021, 'Sebaran': 2592, 'Sembuh': 856, 'Kematian': 276, 'Jumlah_Tenaga_Keperawatan': 8457, 'Jumlah_Rumah_Sakit': 38, 'Jumlah_Nakes': 133, 'Jumlah_Penduduk': 2527854, 'Jumlah_Penduduk_Bekerja': 1185623, 'Jumlah_Perilaku_Hidup_Sehat': 97979}, {'Wilayah': 'KOTA BANJAR', 'Tahun': 2021, 'Sebaran': 162, 'Sembuh': 194, 'Kematian': 6, 'Jumlah_Tenaga_Keperawatan': 606, 'Jumlah_Rumah_Sakit': 4, 'Jumlah_Nakes': 16, 'Jumlah_Penduduk': 205732, 'Jumlah_Penduduk_Bekerja': 88631, 'Jumlah_Perilaku_Hidup_Sehat': 46517}, {'Wilayah': 'KOTA BEKASI', 'Tahun': 2021, 'Sebaran': 1462, 'Sembuh': 402, 'Kematian': 92, 'Jumlah_Tenaga_Keperawatan': 5057, 'Jumlah_Rumah_Sakit': 48, 'Jumlah_Nakes': 68, 'Jumlah_Penduduk': 2468448, 'Jumlah_Penduduk_Bekerja': 1376447, 'Jumlah_Perilaku_Hidup_Sehat': 40596}, {'Wilayah': 'KOTA BOGOR', 'Tahun': 2021, 'Sebaran': 608, 'Sembuh': 205, 'Kematian': 38, 'Jumlah_Tenaga_Keperawatan': 3161, 'Jumlah_Rumah_Sakit': 23, 'Jumlah_Nakes': 44, 'Jumlah_Penduduk': 1091396, 'Jumlah_Penduduk_Bekerja': 466645, 'Jumlah_Perilaku_Hidup_Sehat': 145792}, {'Wilayah': 'KOTA CIMAHI', 'Tahun': 2021, 'Sebaran': 451, 'Sembuh': 200, 'Kematian': 24, 'Jumlah_Tenaga_Keperawatan': 1468, 'Jumlah_Rumah_Sakit': 8, 'Jumlah_Nakes': 28, 'Jumlah_Penduduk': 560746, 'Jumlah_Penduduk_Bekerja': 254059, 'Jumlah_Perilaku_Hidup_Sehat': 65195}, {'Wilayah': 'KOTA CIREBON', 'Tahun': 2021, 'Sebaran': 492, 'Sembuh': 347, 'Kematian': 23, 'Jumlah_Tenaga_Keperawatan': 1223, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 33, 'Jumlah_Penduduk': 343667, 'Jumlah_Penduduk_Bekerja': 139397, 'Jumlah_Perilaku_Hidup_Sehat': 46322}, {'Wilayah': 'KOTA DEPOK', 'Tahun': 2021, 'Sebaran': 1362, 'Sembuh': 493, 'Kematian': 60, 'Jumlah_Tenaga_Keperawatan': 3389, 'Jumlah_Rumah_Sakit': 24, 'Jumlah_Nakes': 62, 'Jumlah_Penduduk': 1893321, 'Jumlah_Penduduk_Bekerja': 1089295, 'Jumlah_Perilaku_Hidup_Sehat': 347237}, {'Wilayah': 'KOTA SUKABUMI', 'Tahun': 2021, 'Sebaran': 365, 'Sembuh': 109, 'Kematian': 28, 'Jumlah_Tenaga_Keperawatan': 1288, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 34, 'Jumlah_Penduduk': 353631, 'Jumlah_Penduduk_Bekerja': 128395, 'Jumlah_Perilaku_Hidup_Sehat': 54842}, {'Wilayah': 'KOTA TASIKMALAYA', 'Tahun': 2021, 'Sebaran': 567, 'Sembuh': 351, 'Kematian': 23, 'Jumlah_Tenaga_Keperawatan': 1546, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 35, 'Jumlah_Penduduk': 731606, 'Jumlah_Penduduk_Bekerja': 316349, 'Jumlah_Perilaku_Hidup_Sehat': 73447}, {'Wilayah': 'KABUPATEN BANDUNG', 'Tahun': 2022, 'Sebaran': 1990, 'Sembuh': 1239, 'Kematian': 147, 'Jumlah_Tenaga_Keperawatan': 2310, 'Jumlah_Rumah_Sakit': 15, 'Jumlah_Nakes': 97, 'Jumlah_Penduduk': 3708344, 'Jumlah_Penduduk_Bekerja': 1682510, 'Jumlah_Perilaku_Hidup_Sehat': 388891}, {'Wilayah': 'KABUPATEN BANDUNG BARAT', 'Tahun': 2022, 'Sebaran': 946, 'Sembuh': 468, 'Kematian': 50, 'Jumlah_Tenaga_Keperawatan': 1091, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 50, 'Jumlah_Penduduk': 1826946, 'Jumlah_Penduduk_Bekerja': 740639, 'Jumlah_Perilaku_Hidup_Sehat': 233457}, {'Wilayah': 'KABUPATEN BEKASI', 'Tahun': 2022, 'Sebaran': 1632, 'Sembuh': 712, 'Kematian': 78, 'Jumlah_Tenaga_Keperawatan': 4444, 'Jumlah_Rumah_Sakit': 53, 'Jumlah_Nakes': 95, 'Jumlah_Penduduk': 3147268, 'Jumlah_Penduduk_Bekerja': 1799668, 'Jumlah_Perilaku_Hidup_Sehat': 583003}, {'Wilayah': 'KABUPATEN BOGOR', 'Tahun': 2022, 'Sebaran': 5384, 'Sembuh': 2094, 'Kematian': 267, 'Jumlah_Tenaga_Keperawatan': 4374, 'Jumlah_Rumah_Sakit': 30, 'Jumlah_Nakes': 136, 'Jumlah_Penduduk': 5473476, 'Jumlah_Penduduk_Bekerja': 2589167, 'Jumlah_Perilaku_Hidup_Sehat': 552261}, {'Wilayah': 'KABUPATEN CIAMIS', 'Tahun': 2022, 'Sebaran': 675, 'Sembuh': 309, 'Kematian': 58, 'Jumlah_Tenaga_Keperawatan': 1207, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 55, 'Jumlah_Penduduk': 1267878, 'Jumlah_Penduduk_Bekerja': 639600, 'Jumlah_Perilaku_Hidup_Sehat': 154413}, {'Wilayah': 'KABUPATEN CIANJUR', 'Tahun': 2022, 'Sebaran': 1364, 'Sembuh': 328, 'Kematian': 73, 'Jumlah_Tenaga_Keperawatan': 1678, 'Jumlah_Rumah_Sakit': 5, 'Jumlah_Nakes': 60, 'Jumlah_Penduduk': 2506384, 'Jumlah_Penduduk_Bekerja': 1119786, 'Jumlah_Perilaku_Hidup_Sehat': 534689}, {'Wilayah': 'KABUPATEN CIREBON', 'Tahun': 2022, 'Sebaran': 1839, 'Sembuh': 1012, 'Kematian': 92, 'Jumlah_Tenaga_Keperawatan': 3049, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 69, 'Jumlah_Penduduk': 2411302, 'Jumlah_Penduduk_Bekerja': 1020411, 'Jumlah_Perilaku_Hidup_Sehat': 206354}, {'Wilayah': 'KABUPATEN GARUT', 'Tahun': 2022, 'Sebaran': 1755, 'Sembuh': 632, 'Kematian': 108, 'Jumlah_Tenaga_Keperawatan': 2464, 'Jumlah_Rumah_Sakit': 7, 'Jumlah_Nakes': 70, 'Jumlah_Penduduk': 2759490, 'Jumlah_Penduduk_Bekerja': 1229218, 'Jumlah_Perilaku_Hidup_Sehat': 366250}, {'Wilayah': 'KABUPATEN INDRAMAYU', 'Tahun': 2022, 'Sebaran': 734, 'Sembuh': 171, 'Kematian': 44, 'Jumlah_Tenaga_Keperawatan': 1648, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 80, 'Jumlah_Penduduk': 1912850, 'Jumlah_Penduduk_Bekerja': 890992, 'Jumlah_Perilaku_Hidup_Sehat': 230442}, {'Wilayah': 'KABUPATEN KARAWANG', 'Tahun': 2022, 'Sebaran': 1984, 'Sembuh': 977, 'Kematian': 131, 'Jumlah_Tenaga_Keperawatan': 3313, 'Jumlah_Rumah_Sakit': 26, 'Jumlah_Nakes': 56, 'Jumlah_Penduduk': 2509839, 'Jumlah_Penduduk_Bekerja': 1077939, 'Jumlah_Perilaku_Hidup_Sehat': 288472}, {'Wilayah': 'KABUPATEN KUNINGAN', 'Tahun': 2022, 'Sebaran': 929, 'Sembuh': 514, 'Kematian': 72, 'Jumlah_Tenaga_Keperawatan': 1418, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 50, 'Jumlah_Penduduk': 1218332, 'Jumlah_Penduduk_Bekerja': 478750, 'Jumlah_Perilaku_Hidup_Sehat': 419495}, {'Wilayah': 'KABUPATEN MAJALENGKA', 'Tahun': 2022, 'Sebaran': 949, 'Sembuh': 722, 'Kematian': 34, 'Jumlah_Tenaga_Keperawatan': 1242, 'Jumlah_Rumah_Sakit': 5, 'Jumlah_Nakes': 60, 'Jumlah_Penduduk': 1340016, 'Jumlah_Penduduk_Bekerja': 617320, 'Jumlah_Perilaku_Hidup_Sehat': 169125}, {'Wilayah': 'KABUPATEN PANGANDARAN', 'Tahun': 2022, 'Sebaran': 157, 'Sembuh': 94, 'Kematian': 11, 'Jumlah_Tenaga_Keperawatan': 562, 'Jumlah_Rumah_Sakit': 1, 'Jumlah_Nakes': 52, 'Jumlah_Penduduk': 436748, 'Jumlah_Penduduk_Bekerja': 256684, 'Jumlah_Perilaku_Hidup_Sehat': 104738}, {'Wilayah': 'KABUPATEN PURWAKARTA', 'Tahun': 2022, 'Sebaran': 729, 'Sembuh': 371, 'Kematian': 59, 'Jumlah_Tenaga_Keperawatan': 1835, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 41, 'Jumlah_Penduduk': 1020994, 'Jumlah_Penduduk_Bekerja': 430788, 'Jumlah_Perilaku_Hidup_Sehat': 189042}, {'Wilayah': 'KABUPATEN SUBANG', 'Tahun': 2022, 'Sebaran': 1058, 'Sembuh': 299, 'Kematian': 79, 'Jumlah_Tenaga_Keperawatan': 1324, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 50, 'Jumlah_Penduduk': 1618380, 'Jumlah_Penduduk_Bekerja': 800701, 'Jumlah_Perilaku_Hidup_Sehat': 301181}, {'Wilayah': 'KABUPATEN SUKABUMI', 'Tahun': 2022, 'Sebaran': 1678, 'Sembuh': 894, 'Kematian': 31, 'Jumlah_Tenaga_Keperawatan': 2167, 'Jumlah_Rumah_Sakit': 9, 'Jumlah_Nakes': 89, 'Jumlah_Penduduk': 2762500, 'Jumlah_Penduduk_Bekerja': 1211763, 'Jumlah_Perilaku_Hidup_Sehat': 382327}, {'Wilayah': 'KABUPATEN SUMEDANG', 'Tahun': 2022, 'Sebaran': 475, 'Sembuh': 161, 'Kematian': 59, 'Jumlah_Tenaga_Keperawatan': 944, 'Jumlah_Rumah_Sakit': 3, 'Jumlah_Nakes': 48, 'Jumlah_Penduduk': 1187620, 'Jumlah_Penduduk_Bekerja': 562416, 'Jumlah_Perilaku_Hidup_Sehat': 204106}, {'Wilayah': 'KABUPATEN TASIKMALAYA', 'Tahun': 2022, 'Sebaran': 1367, 'Sembuh': 859, 'Kematian': 114, 'Jumlah_Tenaga_Keperawatan': 1091, 'Jumlah_Rumah_Sakit': 2, 'Jumlah_Nakes': 49, 'Jumlah_Penduduk': 1939683, 'Jumlah_Penduduk_Bekerja': 901466, 'Jumlah_Perilaku_Hidup_Sehat': 226236}, {'Wilayah': 'KOTA BANDUNG', 'Tahun': 2022, 'Sebaran': 2643, 'Sembuh': 984, 'Kematian': 305, 'Jumlah_Tenaga_Keperawatan': 6645, 'Jumlah_Rumah_Sakit': 39, 'Jumlah_Nakes': 160, 'Jumlah_Penduduk': 2545005, 'Jumlah_Penduduk_Bekerja': 1298537, 'Jumlah_Perilaku_Hidup_Sehat': 110473}, {'Wilayah': 'KOTA BANJAR', 'Tahun': 2022, 'Sebaran': 146, 'Sembuh': 89, 'Kematian': 6, 'Jumlah_Tenaga_Keperawatan': 494, 'Jumlah_Rumah_Sakit': 4, 'Jumlah_Nakes': 16, 'Jumlah_Penduduk': 207625, 'Jumlah_Penduduk_Bekerja': 89588, 'Jumlah_Perilaku_Hidup_Sehat': 47023}, {'Wilayah': 'KOTA BEKASI', 'Tahun': 2022, 'Sebaran': 2055, 'Sembuh': 688, 'Kematian': 114, 'Jumlah_Tenaga_Keperawatan': 5445, 'Jumlah_Rumah_Sakit': 47, 'Jumlah_Nakes': 77, 'Jumlah_Penduduk': 2486251, 'Jumlah_Penduduk_Bekerja': 1452223, 'Jumlah_Perilaku_Hidup_Sehat': 25860}, {'Wilayah': 'KOTA BOGOR', 'Tahun': 2022, 'Sebaran': 1074, 'Sembuh': 413, 'Kematian': 156, 'Jumlah_Tenaga_Keperawatan': 3029, 'Jumlah_Rumah_Sakit': 22, 'Jumlah_Nakes': 65, 'Jumlah_Penduduk': 1114018, 'Jumlah_Penduduk_Bekerja': 496570, 'Jumlah_Perilaku_Hidup_Sehat': 146529}, {'Wilayah': 'KOTA CIMAHI', 'Tahun': 2022, 'Sebaran': 694, 'Sembuh': 266, 'Kematian': 24, 'Jumlah_Tenaga_Keperawatan': 1604, 'Jumlah_Rumah_Sakit': 8, 'Jumlah_Nakes': 26, 'Jumlah_Penduduk': 566537, 'Jumlah_Penduduk_Bekerja': 286038, 'Jumlah_Perilaku_Hidup_Sehat': 62632}, {'Wilayah': 'KOTA CIREBON', 'Tahun': 2022, 'Sebaran': 645, 'Sembuh': 395, 'Kematian': 61, 'Jumlah_Tenaga_Keperawatan': 1322, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 33, 'Jumlah_Penduduk': 346438, 'Jumlah_Penduduk_Bekerja': 149860, 'Jumlah_Perilaku_Hidup_Sehat': 47303}, {'Wilayah': 'KOTA DEPOK', 'Tahun': 2022, 'Sebaran': 2007, 'Sembuh': 1087, 'Kematian': 123, 'Jumlah_Tenaga_Keperawatan': 3372, 'Jumlah_Rumah_Sakit': 26, 'Jumlah_Nakes': 64, 'Jumlah_Penduduk': 1920182, 'Jumlah_Penduduk_Bekerja': 1160313, 'Jumlah_Perilaku_Hidup_Sehat': 365258}, {'Wilayah': 'KOTA SUKABUMI', 'Tahun': 2022, 'Sebaran': 474, 'Sembuh': 107, 'Kematian': 38, 'Jumlah_Tenaga_Keperawatan': 1221, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 39, 'Jumlah_Penduduk': 358854, 'Jumlah_Penduduk_Bekerja': 145522, 'Jumlah_Perilaku_Hidup_Sehat': 54842}, {'Wilayah': 'KOTA TASIKMALAYA', 'Tahun': 2022, 'Sebaran': 750, 'Sembuh': 513, 'Kematian': 44, 'Jumlah_Tenaga_Keperawatan': 1597, 'Jumlah_Rumah_Sakit': 14, 'Jumlah_Nakes': 39, 'Jumlah_Penduduk': 746710, 'Jumlah_Penduduk_Bekerja': 324099, 'Jumlah_Perilaku_Hidup_Sehat': 75595}, {'Wilayah': 'KABUPATEN BANDUNG', 'Tahun': 2023, 'Sebaran': 3144, 'Sembuh': 1817, 'Kematian': 414, 'Jumlah_Tenaga_Keperawatan': 3236, 'Jumlah_Rumah_Sakit': 17, 'Jumlah_Nakes': 100, 'Jumlah_Penduduk': 3749172, 'Jumlah_Penduduk_Bekerja': 1756328, 'Jumlah_Perilaku_Hidup_Sehat': 441772}, {'Wilayah': 'KABUPATEN BANDUNG BARAT', 'Tahun': 2023, 'Sebaran': 1325, 'Sembuh': 724, 'Kematian': 73, 'Jumlah_Tenaga_Keperawatan': 3249, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 61, 'Jumlah_Penduduk': 1847096, 'Jumlah_Penduduk_Bekerja': 870269, 'Jumlah_Perilaku_Hidup_Sehat': 284366}, {'Wilayah': 'KABUPATEN BEKASI', 'Tahun': 2023, 'Sebaran': 3003, 'Sembuh': 1173, 'Kematian': 128, 'Jumlah_Tenaga_Keperawatan': 3248, 'Jumlah_Rumah_Sakit': 55, 'Jumlah_Nakes': 77, 'Jumlah_Penduduk': 3197006, 'Jumlah_Penduduk_Bekerja': 1451622, 'Jumlah_Perilaku_Hidup_Sehat': 701147}, {'Wilayah': 'KABUPATEN BOGOR', 'Tahun': 2023, 'Sebaran': 8783, 'Sembuh': 3122, 'Kematian': 555, 'Jumlah_Tenaga_Keperawatan': 3233, 'Jumlah_Rumah_Sakit': 31, 'Jumlah_Nakes': 114, 'Jumlah_Penduduk': 5558885, 'Jumlah_Penduduk_Bekerja': 2505069, 'Jumlah_Perilaku_Hidup_Sehat': 534941}, {'Wilayah': 'KABUPATEN CIAMIS', 'Tahun': 2023, 'Sebaran': 1103, 'Sembuh': 488, 'Kematian': 72, 'Jumlah_Tenaga_Keperawatan': 3239, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 47, 'Jumlah_Penduduk': 1281201, 'Jumlah_Penduduk_Bekerja': 634660, 'Jumlah_Perilaku_Hidup_Sehat': 124861}, {'Wilayah': 'KABUPATEN CIANJUR', 'Tahun': 2023, 'Sebaran': 2235, 'Sembuh': 775, 'Kematian': 122, 'Jumlah_Tenaga_Keperawatan': 3235, 'Jumlah_Rumah_Sakit': 7, 'Jumlah_Nakes': 49, 'Jumlah_Penduduk': 2535002, 'Jumlah_Penduduk_Bekerja': 1283307, 'Jumlah_Perilaku_Hidup_Sehat': 555646}, {'Wilayah': 'KABUPATEN CIREBON', 'Tahun': 2023, 'Sebaran': 3254, 'Sembuh': 1700, 'Kematian': 154, 'Jumlah_Tenaga_Keperawatan': 3241, 'Jumlah_Rumah_Sakit': 13, 'Jumlah_Nakes': 87, 'Jumlah_Penduduk': 2437899, 'Jumlah_Penduduk_Bekerja': 1101094, 'Jumlah_Perilaku_Hidup_Sehat': 217011}, {'Wilayah': 'KABUPATEN GARUT', 'Tahun': 2023, 'Sebaran': 2678, 'Sembuh': 814, 'Kematian': 186, 'Jumlah_Tenaga_Keperawatan': 3237, 'Jumlah_Rumah_Sakit': 9, 'Jumlah_Nakes': 61, 'Jumlah_Penduduk': 2753949, 'Jumlah_Penduduk_Bekerja': 1289745, 'Jumlah_Perilaku_Hidup_Sehat': 409464}, {'Wilayah': 'KABUPATEN INDRAMAYU', 'Tahun': 2023, 'Sebaran': 1230, 'Sembuh': 274, 'Kematian': 105, 'Jumlah_Tenaga_Keperawatan': 3244, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 78, 'Jumlah_Penduduk': 1933948, 'Jumlah_Penduduk_Bekerja': 880854, 'Jumlah_Perilaku_Hidup_Sehat': 75182}, {'Wilayah': 'KABUPATEN KARAWANG', 'Tahun': 2023, 'Sebaran': 3485, 'Sembuh': 1335, 'Kematian': 189, 'Jumlah_Tenaga_Keperawatan': 3247, 'Jumlah_Rumah_Sakit': 26, 'Jumlah_Nakes': 58, 'Jumlah_Penduduk': 2539381, 'Jumlah_Penduduk_Bekerja': 1117496, 'Jumlah_Perilaku_Hidup_Sehat': 286574}, {'Wilayah': 'KABUPATEN KUNINGAN', 'Tahun': 2023, 'Sebaran': 1360, 'Sembuh': 785, 'Kematian': 76, 'Jumlah_Tenaga_Keperawatan': 3240, 'Jumlah_Rumah_Sakit': 12, 'Jumlah_Nakes': 57, 'Jumlah_Penduduk': 1231772, 'Jumlah_Penduduk_Bekerja': 519658, 'Jumlah_Perilaku_Hidup_Sehat': 182786}, {'Wilayah': 'KABUPATEN MAJALENGKA', 'Tahun': 2023, 'Sebaran': 1457, 'Sembuh': 1102, 'Kematian': 60, 'Jumlah_Tenaga_Keperawatan': 3242, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 57, 'Jumlah_Penduduk': 1354803, 'Jumlah_Penduduk_Bekerja': 689821, 'Jumlah_Perilaku_Hidup_Sehat': 216758}, {'Wilayah': 'KABUPATEN PANGANDARAN', 'Tahun': 2023, 'Sebaran': 298, 'Sembuh': 114, 'Kematian': 34, 'Jumlah_Tenaga_Keperawatan': 3250, 'Jumlah_Rumah_Sakit': 1, 'Jumlah_Nakes': 56, 'Jumlah_Penduduk': 442205, 'Jumlah_Penduduk_Bekerja': 270386, 'Jumlah_Perilaku_Hidup_Sehat': 119076}, {'Wilayah': 'KABUPATEN PURWAKARTA', 'Tahun': 2023, 'Sebaran': 1229, 'Sembuh': 401, 'Kematian': 79, 'Jumlah_Tenaga_Keperawatan': 3246, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 36, 'Jumlah_Penduduk': 1036768, 'Jumlah_Penduduk_Bekerja': 479290, 'Jumlah_Perilaku_Hidup_Sehat': 178791}, {'Wilayah': 'KABUPATEN SUBANG', 'Tahun': 2023, 'Sebaran': 1552, 'Sembuh': 414, 'Kematian': 116, 'Jumlah_Tenaga_Keperawatan': 3245, 'Jumlah_Rumah_Sakit': 11, 'Jumlah_Nakes': 50, 'Jumlah_Penduduk': 1636233, 'Jumlah_Penduduk_Bekerja': 839759, 'Jumlah_Perilaku_Hidup_Sehat': 255923}, {'Wilayah': 'KABUPATEN SUKABUMI', 'Tahun': 2023, 'Sebaran': 2310, 'Sembuh': 975, 'Kematian': 55, 'Jumlah_Tenaga_Keperawatan': 3234, 'Jumlah_Rumah_Sakit': 9, 'Jumlah_Nakes': 79, 'Jumlah_Penduduk': 2790320, 'Jumlah_Penduduk_Bekerja': 1344044, 'Jumlah_Perilaku_Hidup_Sehat': 413433}, {'Wilayah': 'KABUPATEN SUMEDANG', 'Tahun': 2023, 'Sebaran': 875, 'Sembuh': 376, 'Kematian': 83, 'Jumlah_Tenaga_Keperawatan': 3243, 'Jumlah_Rumah_Sakit': 5, 'Jumlah_Nakes': 47, 'Jumlah_Penduduk': 1205685, 'Jumlah_Penduduk_Bekerja': 582674, 'Jumlah_Perilaku_Hidup_Sehat': 247142}, {'Wilayah': 'KABUPATEN TASIKMALAYA', 'Tahun': 2023, 'Sebaran': 1961, 'Sembuh': 1129, 'Kematian': 147, 'Jumlah_Tenaga_Keperawatan': 3238, 'Jumlah_Rumah_Sakit': 3, 'Jumlah_Nakes': 45, 'Jumlah_Penduduk': 1958221, 'Jumlah_Penduduk_Bekerja': 970598, 'Jumlah_Perilaku_Hidup_Sehat': 254757}, {'Wilayah': 'KOTA BANDUNG', 'Tahun': 2023, 'Sebaran': 3834, 'Sembuh': 1324, 'Kematian': 424, 'Jumlah_Tenaga_Keperawatan': 3305, 'Jumlah_Rumah_Sakit': 42, 'Jumlah_Nakes': 151, 'Jumlah_Penduduk': 2569107, 'Jumlah_Penduduk_Bekerja': 1202485, 'Jumlah_Perilaku_Hidup_Sehat': 100558}, {'Wilayah': 'KOTA BANJAR', 'Tahun': 2023, 'Sebaran': 349, 'Sembuh': 94, 'Kematian': 21, 'Jumlah_Tenaga_Keperawatan': 3311, 'Jumlah_Rumah_Sakit': 4, 'Jumlah_Nakes': 24, 'Jumlah_Penduduk': 208309, 'Jumlah_Penduduk_Bekerja': 103010, 'Jumlah_Perilaku_Hidup_Sehat': 46049}, {'Wilayah': 'KOTA BEKASI', 'Tahun': 2023, 'Sebaran': 3687, 'Sembuh': 1275, 'Kematian': 196, 'Jumlah_Tenaga_Keperawatan': 3307, 'Jumlah_Rumah_Sakit': 48, 'Jumlah_Nakes': 89, 'Jumlah_Penduduk': 2513669, 'Jumlah_Penduduk_Bekerja': 1214160, 'Jumlah_Perilaku_Hidup_Sehat': 52173}, {'Wilayah': 'KOTA BOGOR', 'Tahun': 2023, 'Sebaran': 2217, 'Sembuh': 816, 'Kematian': 270, 'Jumlah_Tenaga_Keperawatan': 3303, 'Jumlah_Rumah_Sakit': 22, 'Jumlah_Nakes': 67, 'Jumlah_Penduduk': 1127408, 'Jumlah_Penduduk_Bekerja': 484334, 'Jumlah_Perilaku_Hidup_Sehat': 153170}, {'Wilayah': 'KOTA CIMAHI', 'Tahun': 2023, 'Sebaran': 979, 'Sembuh': 474, 'Kematian': 38, 'Jumlah_Tenaga_Keperawatan': 3309, 'Jumlah_Rumah_Sakit': 8, 'Jumlah_Nakes': 30, 'Jumlah_Penduduk': 575519, 'Jumlah_Penduduk_Bekerja': 282398, 'Jumlah_Perilaku_Hidup_Sehat': 69068}, {'Wilayah': 'KOTA CIREBON', 'Tahun': 2023, 'Sebaran': 858, 'Sembuh': 518, 'Kematian': 60, 'Jumlah_Tenaga_Keperawatan': 3306, 'Jumlah_Rumah_Sakit': 10, 'Jumlah_Nakes': 54, 'Jumlah_Penduduk': 352347, 'Jumlah_Penduduk_Bekerja': 167037, 'Jumlah_Perilaku_Hidup_Sehat': 47028}, {'Wilayah': 'KOTA DEPOK', 'Tahun': 2023, 'Sebaran': 2679, 'Sembuh': 1354, 'Kematian': 181, 'Jumlah_Tenaga_Keperawatan': 3308, 'Jumlah_Rumah_Sakit': 28, 'Jumlah_Nakes': 73, 'Jumlah_Penduduk': 1941360, 'Jumlah_Penduduk_Bekerja': 961194, 'Jumlah_Perilaku_Hidup_Sehat': 361673}, {'Wilayah': 'KOTA SUKABUMI', 'Tahun': 2023, 'Sebaran': 790, 'Sembuh': 283, 'Kematian': 61, 'Jumlah_Tenaga_Keperawatan': 3304, 'Jumlah_Rumah_Sakit': 6, 'Jumlah_Nakes': 28, 'Jumlah_Penduduk': 364912, 'Jumlah_Penduduk_Bekerja': 156762, 'Jumlah_Perilaku_Hidup_Sehat': 33661}, {'Wilayah': 'KOTA TASIKMALAYA', 'Tahun': 2023, 'Sebaran': 1123, 'Sembuh': 686, 'Kematian': 80, 'Jumlah_Tenaga_Keperawatan': 3310, 'Jumlah_Rumah_Sakit': 15, 'Jumlah_Nakes': 41, 'Jumlah_Penduduk': 757815, 'Jumlah_Penduduk_Bekerja': 345544, 'Jumlah_Perilaku_Hidup_Sehat': 84867}];;
+
+
+    const wilayahSet = [...new Set(rawData.map(d => d.Wilayah))];
+    const regionA = document.getElementById("regionA");
+    const regionB = document.getElementById("regionB");
+
+    wilayahSet.forEach(w => {
+      const optA = document.createElement("option");
+      optA.value = optA.text = w;
+      regionA.appendChild(optA);
+
+      const optB = document.createElement("option");
+      optB.value = optB.text = w;
+      regionB.appendChild(optB);
+    });
+
+    regionA.value = wilayahSet[0];
+    regionB.value = wilayahSet[1] || wilayahSet[0];
+
+    function updateChart() {
+      const numerator = document.getElementById("numerator").value;
+      const denominator = document.getElementById("denominator").value;
+      const chartType = document.getElementById("chartType").value.toLowerCase();
+      const colorA = document.getElementById("colorA").value;
+      const colorB = document.getElementById("colorB").value;
+      const wilayahA = regionA.value;
+      const wilayahB = regionB.value;
+
+      if (numerator === denominator) {
+        alert("Pembilang dan penyebut tidak boleh sama.");
+        return;
+      }
+
+      const tahun = [2020, 2021, 2022, 2023];
+
+      function calculate(wilayah) {
+        return tahun.map(t => {
+          const entry = rawData.find(d => d.Tahun === t && d.Wilayah === wilayah);
+          return entry && entry[denominator] !== 0 ? (entry[numerator] / entry[denominator]) * 100 : null;
+        });
+      }
+
+      const traceA = {
+        x: tahun,
+        y: calculate(wilayahA),
+        name: wilayahA,
+        type: chartType,
+        line: { color: colorA },
+        marker: { color: colorA }
+      };
+
+      const traceB = {
+        x: tahun,
+        y: calculate(wilayahB),
+        name: wilayahB,
+        type: chartType,
+        line: { color: colorB },
+        marker: { color: colorB }
+      };
+
+      Plotly.newPlot('plot', [traceA, traceB], {
+        title: `Trend 2020–2023: ${wilayahA} vs ${wilayahB}`,
+        xaxis: { title: 'Tahun' },
+        yaxis: { title: `${numerator} / ${denominator} × 100` },
+        margin: { l: 50, r: 30, t: 60, b: 60 },
+        width: 850,
+        height: 450,
+        legend: { orientation: "h", x: 0.5, xanchor: 'center', y: -0.2 }
+      });
+    }
+
+    updateChart();
+  </script>
+</body>
+</html>
